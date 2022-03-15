@@ -20,6 +20,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
+  namespace 'com.example.myapp'
   signingConfigs {
     release {
       keyAlias "debug"
@@ -63,19 +64,19 @@ android {
       minifyEnabled false
     }
   }
-
   packagingOptions {
-    exclude 'META-INF/services/javax.annotation.processing.Processor'
-  }
-
-  lintOptions {
-    disable 'InvalidPackage'
-    abortOnError false
+    resources {
+      excludes += ['META-INF/services/javax.annotation.processing.Processor']
+    }
   }
 
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
+  }
+  lint {
+    abortOnError false
+    disable 'InvalidPackage'
   }
 }
 
@@ -93,11 +94,11 @@ dependencies {
   //    exclude group: 'com.android.support'
   //  }
 
-  implementation 'com.google.android.material:material:1.0.0'
-  implementation 'androidx.appcompat:appcompat:1.1.0'
+  implementation 'com.google.android.material:material:1.5.0'
+  implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation 'androidx.cardview:cardview:1.0.0'
   implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
-  implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+  implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
 
   // additional dependencies.
   //noinspection GradleDependency
@@ -110,9 +111,9 @@ dependencies {
     exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
   })
 
-  implementation 'io.reactivex.rxjava2:rxjava:2.2.13'
+  implementation 'io.reactivex.rxjava2:rxjava:2.2.17'
 
-  implementation "org.jsoup:jsoup:1.12.1"
+  implementation "org.jsoup:jsoup:1.13.1"
 
   debugImplementation "com.squareup.leakcanary:leakcanary-android:${rootProject.ext.leackCanary}"
   releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:${rootProject.ext.leackCanary}"
@@ -128,9 +129,9 @@ dependencies {
   // Custom LayoutManager
   // compile 'com.google.android:flexbox:0.3.0'
 
-  testImplementation 'junit:junit:4.12'
-  androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-  androidTestImplementation 'androidx.test:rules:1.2.0'
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-  androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.2.0'
+  testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+  androidTestImplementation 'androidx.test:rules:1.4.0'
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+  androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.4.0'
 }

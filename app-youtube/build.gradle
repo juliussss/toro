@@ -97,8 +97,8 @@ dependencies {
   implementation fileTree(dir: 'libs', include: ['*.jar'])
   implementation project(':toro-core')
 
-  implementation 'com.google.android.material:material:1.0.0'
-  implementation 'androidx.appcompat:appcompat:1.1.0'
+  implementation 'com.google.android.material:material:1.5.0'
+  implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation 'androidx.cardview:cardview:1.0.0'
 
   implementation "com.google.apis:google-api-services-youtube:v3-rev20190827-${rootProject.ext.googleApiClient}"
@@ -106,7 +106,7 @@ dependencies {
   implementation "com.google.api-client:google-api-client-android:${rootProject.ext.googleApiClient}"
   implementation "com.google.api-client:google-api-client-gson:${rootProject.ext.googleApiClient}"
 
-  implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+  implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
   implementation "com.github.bumptech.glide:glide:${rootProject.ext.glide}"
   annotationProcessor "com.github.bumptech.glide:compiler:${rootProject.ext.glide}"
@@ -116,17 +116,17 @@ dependencies {
     exclude group: 'io.reactivex.rxjava2', module: 'rxjava'
   })
 
-  implementation "io.reactivex.rxjava2:rxjava:2.2.13"
+  implementation "io.reactivex.rxjava2:rxjava:2.2.17"
 
   // implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
-  implementation('com.crashlytics.sdk.android:crashlytics:2.9.7@aar') {
-    transitive = true
-  }
-
-  implementation('com.crashlytics.sdk.android:crashlytics-ndk:2.0.5@aar') {
-    transitive = true
-  }
+//  implementation('com.crashlytics.sdk.android:crashlytics:2.9.7@aar') {
+//    transitive = true
+//  }
+//
+//  implementation('com.crashlytics.sdk.android:crashlytics-ndk:2.0.5@aar') {
+//    transitive = true
+//  }
 
   debugImplementation "com.squareup.leakcanary:leakcanary-android:${rootProject.ext.leackCanary}"
   releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:${rootProject.ext.leackCanary}"
@@ -135,12 +135,12 @@ dependencies {
 
   // implementation "com.android.support:multidex:1.0.3"
 
-  testImplementation 'junit:junit:4.12'
-  androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-  androidTestImplementation 'androidx.test:core:1.2.0'
-  androidTestImplementation 'androidx.test:rules:1.2.0'
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-  androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.2.0'
+  testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+  androidTestImplementation 'androidx.test:core:1.4.0'
+  androidTestImplementation 'androidx.test:rules:1.4.0'
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+  androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.4.0'
 }
 
 if (haveFabricApiKey) {

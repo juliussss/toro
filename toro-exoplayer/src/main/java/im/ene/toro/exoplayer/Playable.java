@@ -19,11 +19,16 @@ package im.ene.toro.exoplayer;
 import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.DeviceInfo;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.MediaMetadata;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.TracksInfo;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -31,8 +36,9 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.video.VideoListener;
+import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.exoplayer2.video.VideoSize;
 import im.ene.toro.ToroPlayer;
 import im.ene.toro.annotations.RemoveIn;
 import im.ene.toro.media.PlaybackInfo;
@@ -41,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Define an interface to control a playback, specific for {@link SimpleExoPlayer} and {@link PlayerView}.
+ * Define an interface to control a playback, specific for {@link ExoPlayer} and {@link StyledPlayerView}.
  *
  * This interface is designed to be reused across Config change. Implementation must not hold any
  * strong reference to Activity, and if it supports any kind of that, make sure to implicitly clean
@@ -55,13 +61,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public interface Playable {
 
   /**
-   * Prepare the resource for a {@link SimpleExoPlayer}. This method should:
-   * - Request for new {@link SimpleExoPlayer} instance if there is not a usable one.
+   * Prepare the resource for a {@link ExoPlayer}. This method should:
+   * - Request for new {@link ExoPlayer} instance if there is not a usable one.
    * - Configure {@link EventListener} for it.
-   * - If there is non-trivial PlaybackInfo, update it to the SimpleExoPlayer.
+   * - If there is non-trivial PlaybackInfo, update it to the ExoPlayer.
    * - If client request to prepare MediaSource, then prepare it.
    *
-   * This method must be called before {@link #setPlayerView(PlayerView)}.
+   * This method must be called before {@link #setPlayerView(StyledPlayerView)}.
    *
    * @param prepareSource if {@code true}, also prepare the MediaSource when preparing the Player,
    * if {@code false} just do nothing for the MediaSource.
@@ -69,23 +75,23 @@ public interface Playable {
   void prepare(boolean prepareSource);
 
   /**
-   * Set the {@link PlayerView} for this Playable. It is expected that a playback doesn't require a
-   * UI, so this setup is optional. But it must be called after the SimpleExoPlayer is prepared,
+   * Set the {@link StyledPlayerView} for this Playable. It is expected that a playback doesn't require a
+   * UI, so this setup is optional. But it must be called after the ExoPlayer is prepared,
    * that is after {@link #prepare(boolean)} and before {@link #release()}.
    *
-   * Changing the PlayerView during playback is expected, though not always recommended, especially
+   * Changing the StyledPlayerView during playback is expected, though not always recommended, especially
    * on old Devices with low Android API.
    *
-   * @param playerView the PlayerView to set to the SimpleExoPlayer.
+   * @param playerView the StyledPlayerView to set to the ExoPlayer.
    */
-  void setPlayerView(@Nullable PlayerView playerView);
+  void setPlayerView(@Nullable StyledPlayerView playerView);
 
   /**
-   * Get current {@link PlayerView} of this Playable.
+   * Get current {@link StyledPlayerView} of this Playable.
    *
-   * @return current PlayerView instance of this Playable.
+   * @return current StyledPlayerView instance of this Playable.
    */
-  @Nullable PlayerView getPlayerView();
+  @Nullable StyledPlayerView getPlayerView();
 
   /**
    * Start the playback. If the {@link MediaSource} is not prepared, then also prepare it.
@@ -99,13 +105,13 @@ public interface Playable {
 
   /**
    * Reset all resource, so that the playback can start all over again. This is to cleanup the
-   * playback for reuse. The SimpleExoPlayer instance must be still usable without calling
+   * playback for reuse. The ExoPlayer instance must be still usable without calling
    * {@link #prepare(boolean)}.
    */
   void reset();
 
   /**
-   * Release all resource. After this, the SimpleExoPlayer is released to the Player pool and the
+   * Release all resource. After this, the ExoPlayer is released to the Player pool and the
    * Playable must call {@link #prepare(boolean)} again to use it again.
    */
   void release();
@@ -200,16 +206,144 @@ public interface Playable {
   void removeErrorListener(@Nullable ToroPlayer.OnErrorListener listener);
 
   // Combine necessary interfaces.
-  interface EventListener extends Player.EventListener, VideoListener, TextOutput, MetadataOutput {
+  interface EventListener extends Player.Listener, TextOutput, MetadataOutput {
 
+    @Override default void onEvents(Player player, Player.Events events) {
+      Player.Listener.super.onEvents(player, events);
+    }
+
+    @Override default void onTimelineChanged(Timeline timeline, int reason) {
+      Player.Listener.super.onTimelineChanged(timeline, reason);
+    }
+
+    @Override default void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+      Player.Listener.super.onMediaItemTransition(mediaItem, reason);
+    }
+
+    @Override default void onTracksInfoChanged(TracksInfo tracksInfo) {
+      Player.Listener.super.onTracksInfoChanged(tracksInfo);
+    }
+
+    @Override default void onMediaMetadataChanged(MediaMetadata mediaMetadata) {
+      Player.Listener.super.onMediaMetadataChanged(mediaMetadata);
+    }
+
+    @Override default void onPlaylistMetadataChanged(MediaMetadata mediaMetadata) {
+      Player.Listener.super.onPlaylistMetadataChanged(mediaMetadata);
+    }
+
+    @Override default void onIsLoadingChanged(boolean isLoading) {
+      Player.Listener.super.onIsLoadingChanged(isLoading);
+    }
+
+    @Override default void onAvailableCommandsChanged(Player.Commands availableCommands) {
+      Player.Listener.super.onAvailableCommandsChanged(availableCommands);
+    }
+
+    @Override default void onTrackSelectionParametersChanged(TrackSelectionParameters parameters) {
+      Player.Listener.super.onTrackSelectionParametersChanged(parameters);
+    }
+
+    @Override default void onPlaybackStateChanged(int playbackState) {
+      Player.Listener.super.onPlaybackStateChanged(playbackState);
+    }
+
+    @Override default void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+      Player.Listener.super.onPlayWhenReadyChanged(playWhenReady, reason);
+    }
+
+    @Override default void onPlaybackSuppressionReasonChanged(int playbackSuppressionReason) {
+      Player.Listener.super.onPlaybackSuppressionReasonChanged(playbackSuppressionReason);
+    }
+
+    @Override default void onIsPlayingChanged(boolean isPlaying) {
+      Player.Listener.super.onIsPlayingChanged(isPlaying);
+    }
+
+    @Override default void onRepeatModeChanged(int repeatMode) {
+      Player.Listener.super.onRepeatModeChanged(repeatMode);
+    }
+
+    @Override default void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+      Player.Listener.super.onShuffleModeEnabledChanged(shuffleModeEnabled);
+    }
+
+    @Override default void onPlayerError(PlaybackException error) {
+      Player.Listener.super.onPlayerError(error);
+    }
+
+    @Override default void onPlayerErrorChanged(@Nullable PlaybackException error) {
+      Player.Listener.super.onPlayerErrorChanged(error);
+    }
+
+    @Override default void onPositionDiscontinuity(Player.PositionInfo oldPosition,
+        Player.PositionInfo newPosition, int reason) {
+      Player.Listener.super.onPositionDiscontinuity(oldPosition, newPosition, reason);
+    }
+
+    @Override default void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+      Player.Listener.super.onPlaybackParametersChanged(playbackParameters);
+    }
+
+    @Override default void onSeekBackIncrementChanged(long seekBackIncrementMs) {
+      Player.Listener.super.onSeekBackIncrementChanged(seekBackIncrementMs);
+    }
+
+    @Override default void onSeekForwardIncrementChanged(long seekForwardIncrementMs) {
+      Player.Listener.super.onSeekForwardIncrementChanged(seekForwardIncrementMs);
+    }
+
+    @Override default void onMaxSeekToPreviousPositionChanged(long maxSeekToPreviousPositionMs) {
+      Player.Listener.super.onMaxSeekToPreviousPositionChanged(maxSeekToPreviousPositionMs);
+    }
+
+    @Override default void onAudioSessionIdChanged(int audioSessionId) {
+      Player.Listener.super.onAudioSessionIdChanged(audioSessionId);
+    }
+
+    @Override default void onAudioAttributesChanged(AudioAttributes audioAttributes) {
+      Player.Listener.super.onAudioAttributesChanged(audioAttributes);
+    }
+
+    @Override default void onVolumeChanged(float volume) {
+      Player.Listener.super.onVolumeChanged(volume);
+    }
+
+    @Override default void onSkipSilenceEnabledChanged(boolean skipSilenceEnabled) {
+      Player.Listener.super.onSkipSilenceEnabledChanged(skipSilenceEnabled);
+    }
+
+    @Override default void onDeviceInfoChanged(DeviceInfo deviceInfo) {
+      Player.Listener.super.onDeviceInfoChanged(deviceInfo);
+    }
+
+    @Override default void onDeviceVolumeChanged(int volume, boolean muted) {
+      Player.Listener.super.onDeviceVolumeChanged(volume, muted);
+    }
+
+    @Override default void onVideoSizeChanged(VideoSize videoSize) {
+      Player.Listener.super.onVideoSizeChanged(videoSize);
+    }
+
+    @Override default void onSurfaceSizeChanged(int width, int height) {
+      Player.Listener.super.onSurfaceSizeChanged(width, height);
+    }
+
+    @Override default void onRenderedFirstFrame() {
+      Player.Listener.super.onRenderedFirstFrame();
+    }
+
+    @Override default void onCues(List<Cue> cues) {
+      Player.Listener.super.onCues(cues);
+    }
+
+    @Override default void onMetadata(Metadata metadata) {
+      Player.Listener.super.onMetadata(metadata);
+    }
   }
 
   /** Default empty implementation */
   class DefaultEventListener implements EventListener {
-
-    @Override public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
-
-    }
 
     @Override
     public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
@@ -232,8 +366,8 @@ public interface Playable {
 
     }
 
-    @Override public void onPlayerError(ExoPlaybackException error) {
-
+    @Override public void onPlayerError(PlaybackException error) {
+      EventListener.super.onPlayerError(error);
     }
 
     @Override public void onPositionDiscontinuity(int reason) {
@@ -248,9 +382,8 @@ public interface Playable {
 
     }
 
-    @Override public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
-        float pixelWidthHeightRatio) {
-
+    @Override public void onVideoSizeChanged(VideoSize videoSize) {
+      EventListener.super.onVideoSizeChanged(videoSize);
     }
 
     @Override
@@ -277,12 +410,8 @@ public interface Playable {
     EventListeners() {
     }
 
-    @Override public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees,
-        float pixelWidthHeightRatio) {
-      for (EventListener eventListener : this) {
-        eventListener.onVideoSizeChanged(width, height, unAppliedRotationDegrees,
-            pixelWidthHeightRatio);
-      }
+    @Override public void onVideoSizeChanged(VideoSize videoSize) {
+      EventListener.super.onVideoSizeChanged(videoSize);
     }
 
     @Override
@@ -298,10 +427,8 @@ public interface Playable {
       }
     }
 
-    @Override public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
-      for (EventListener eventListener : this) {
-        eventListener.onTimelineChanged(timeline, manifest, reason);
-      }
+    @Override public void onTimelineChanged(Timeline timeline, int reason) {
+      EventListener.super.onTimelineChanged(timeline, reason);
     }
 
     @Override
@@ -335,10 +462,8 @@ public interface Playable {
       }
     }
 
-    @Override public void onPlayerError(ExoPlaybackException error) {
-      for (EventListener eventListener : this) {
-        eventListener.onPlayerError(error);
-      }
+    @Override public void onPlayerError(PlaybackException error) {
+      EventListener.super.onPlayerError(error);
     }
 
     @Override public void onPositionDiscontinuity(int reason) {
@@ -350,12 +475,6 @@ public interface Playable {
     @Override public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
       for (EventListener eventListener : this) {
         eventListener.onPlaybackParametersChanged(playbackParameters);
-      }
-    }
-
-    @Override public void onSeekProcessed() {
-      for (EventListener eventListener : this) {
-        eventListener.onSeekProcessed();
       }
     }
 

@@ -20,7 +20,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 import im.ene.toro.ToroPlayer;
 import im.ene.toro.annotations.RemoveIn;
 import im.ene.toro.helper.ToroPlayerHelper;
@@ -75,7 +75,7 @@ public class ExoPlayerViewHelper extends ToroPlayerHelper {
   public ExoPlayerViewHelper(@NonNull ToroPlayer player, @NonNull ExoPlayable playable) {
     super(player);
     //noinspection ConstantConditions
-    if (player.getPlayerView() == null || !(player.getPlayerView() instanceof PlayerView)) {
+    if (player.getPlayerView() == null || !(player.getPlayerView() instanceof StyledPlayerView)) {
       throw new IllegalArgumentException("Require non-null PlayerView");
     }
 
@@ -90,12 +90,12 @@ public class ExoPlayerViewHelper extends ToroPlayerHelper {
     playable.addErrorListener(super.getErrorListeners());
     playable.addOnVolumeChangeListener(super.getVolumeChangeListeners());
     playable.prepare(!lazyPrepare);
-    playable.setPlayerView((PlayerView) player.getPlayerView());
+    playable.setPlayerView((StyledPlayerView) player.getPlayerView());
   }
 
   @Override public void release() {
     super.release();
-    playable.setPlayerView(null);
+    playable.setPlayerView((StyledPlayerView) null);
     playable.removeOnVolumeChangeListener(super.getVolumeChangeListeners());
     playable.removeErrorListener(super.getErrorListeners());
     playable.removeEventListener(listeners);

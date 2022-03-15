@@ -22,8 +22,6 @@ android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSupportSDKVersion
     targetSdkVersion rootProject.ext.androidVersion
-    versionCode releaseVersionCode
-    versionName "v" + releaseVersion
 
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     buildConfigField("String", "LIB_NAME", "\"" + "Toro ExoPlayer Extension, v" + releaseVersion + "\"")
@@ -35,11 +33,17 @@ android {
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
+
+  sourceSets {
+    main {
+      jniLibs.srcDirs = ['libs']
+    }
+  }
 }
 
 dependencies {
   implementation project(':toro-core')
-  implementation 'androidx.appcompat:appcompat:1.1.0'
+  implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation ("com.google.android.exoplayer:exoplayer:${rootProject.ext.exoPlayer2Version}") {
     exclude group: 'com.android.support'
   }
@@ -49,12 +53,12 @@ dependencies {
     exclude group: 'com.android.support'
   }
 
-  implementation 'androidx.recyclerview:recyclerview:1.1.0'
-  implementation 'androidx.annotation:annotation:1.1.0'
+  implementation 'androidx.recyclerview:recyclerview:1.2.1'
+  implementation 'androidx.annotation:annotation:1.3.0'
 
-  testImplementation 'junit:junit:4.12'
-  androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+  testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 
 ext {
@@ -64,4 +68,4 @@ ext {
 
 project.archivesBaseName = "toro-ext-exoplayer"
 
-apply from: '../gradle/script/publish.gradle'
+//apply from: '../gradle/script/publish.gradle'

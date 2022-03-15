@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedT
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 
 import static com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo.RENDERER_SUPPORT_UNSUPPORTED_TRACKS;
 import static im.ene.toro.exoplayer.ToroExo.toro;
@@ -78,7 +79,7 @@ public class ExoPlayable extends PlayableImpl {
     this.inErrorState = false;
   }
 
-  @Override public void setPlayerView(@Nullable PlayerView playerView) {
+  @Override public void setPlayerView(@Nullable StyledPlayerView playerView) {
     // This will also clear these flags
     if (playerView != this.playerView) {
       this.lastSeenTrackGroupArray = null;
@@ -137,7 +138,7 @@ public class ExoPlayable extends PlayableImpl {
       }
     }
 
-    @Override public void onPlayerError(ExoPlaybackException error) {
+    public void onPlayerError(ExoPlaybackException error) {
       /// Adapt from ExoPlayer Demo
       String errorString = null;
       if (error.type == ExoPlaybackException.TYPE_RENDERER) {

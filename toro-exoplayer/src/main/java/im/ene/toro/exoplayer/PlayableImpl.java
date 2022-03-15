@@ -21,11 +21,11 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 import im.ene.toro.ToroPlayer;
 import im.ene.toro.ToroPlayer.VolumeChangeListeners;
 import im.ene.toro.ToroUtil;
@@ -60,9 +60,9 @@ class PlayableImpl implements Playable {
   protected final String fileExt;
   protected final ExoCreator creator; // required, cached
 
-  protected SimpleExoPlayer player; // on-demand, cached
+  protected ExoPlayer player; // on-demand, cached
   protected MediaSource mediaSource;  // on-demand, since we do not reuse MediaSource now.
-  protected PlayerView playerView; // on-demand, not always required.
+  protected StyledPlayerView playerView; // on-demand, not always required.
 
   private boolean sourcePrepared = false;
   private boolean listenerApplied = false;
@@ -80,20 +80,20 @@ class PlayableImpl implements Playable {
     }
   }
 
-  @CallSuper @Override public void setPlayerView(@Nullable PlayerView playerView) {
+  @CallSuper @Override public void setPlayerView(@Nullable StyledPlayerView playerView) {
     if (this.playerView == playerView) return;
     if (playerView == null) {
       this.playerView.setPlayer(null);
     } else {
       if (this.player != null) {
-        PlayerView.switchTargetView(this.player, this.playerView, playerView);
+        StyledPlayerView.switchTargetView(this.player, this.playerView, playerView);
       }
     }
 
     this.playerView = playerView;
   }
 
-  @Override public final PlayerView getPlayerView() {
+  @Override public final StyledPlayerView getPlayerView() {
     return this.playerView;
   }
 
@@ -114,7 +114,8 @@ class PlayableImpl implements Playable {
     if (player != null) {
       // reset volume to default
       ToroExo.setVolumeInfo(this.player, new VolumeInfo(false, 1.f));
-      player.stop(true);
+      player.stop();
+      player.clearMediaItems();
     }
     this.mediaSource = null; // so it will be re-prepared when play() is called.
     this.sourcePrepared = false;
@@ -125,12 +126,13 @@ class PlayableImpl implements Playable {
     if (this.player != null) {
       // reset volume to default
       ToroExo.setVolumeInfo(this.player, new VolumeInfo(false, 1.f));
-      this.player.stop(true);
+      this.player.stop();
+      this.player.clearMediaItems();
       if (listenerApplied) {
         player.removeListener(listeners);
-        player.removeVideoListener(listeners);
-        player.removeTextOutput(listeners);
-        player.removeMetadataOutput(listeners);
+        //player.removeVideoListener(listeners);
+        //player.removeTextOutput(listeners);
+        //player.removeMetadataOutput(listeners);
         if (this.player instanceof ToroExoPlayer) {
           ((ToroExoPlayer) this.player).removeOnVolumeChangeListener(this.volumeChangeListeners);
         }
@@ -197,6 +199,7 @@ class PlayableImpl implements Playable {
   }
 
   @Override public void setParameters(@Nullable PlaybackParameters parameters) {
+    assert parameters != null;
     checkNotNull(player, "Playable#setParameters(PlaybackParameters): Player is null") //
         .setPlaybackParameters(parameters);
   }
@@ -229,8 +232,8 @@ class PlayableImpl implements Playable {
 
   final void updatePlaybackInfo() {
     if (player == null || player.getPlaybackState() == Player.STATE_IDLE) return;
-    playbackInfo.setResumeWindow(player.getCurrentWindowIndex());
-    playbackInfo.setResumePosition(player.isCurrentWindowSeekable() ? //
+    playbackInfo.setResumeWindow(player.getCurrentMediaItemIndex());
+    playbackInfo.setResumePosition(player.isCurrentMediaItemSeekable() ?
         Math.max(0, player.getCurrentPosition()) : TIME_UNSET);
     playbackInfo.setVolumeInfo(ToroExo.getVolumeInfo(player));
   }
@@ -249,7 +252,8 @@ class PlayableImpl implements Playable {
     if (!sourcePrepared) {
       ensurePlayer(); // sourcePrepared is set to false only when player is null.
       beforePrepareMediaSource();
-      player.prepare(mediaSource, playbackInfo.getResumeWindow() == C.INDEX_UNSET, false);
+      player.setMediaSource(mediaSource);
+      player.prepare();
       sourcePrepared = true;
     }
   }
@@ -267,9 +271,9 @@ class PlayableImpl implements Playable {
         ((ToroExoPlayer) player).addOnVolumeChangeListener(volumeChangeListeners);
       }
       player.addListener(listeners);
-      player.addVideoListener(listeners);
-      player.addTextOutput(listeners);
-      player.addMetadataOutput(listeners);
+      //player.addVideoListener(listeners);
+      //player.addTextOutput(listeners);
+      //player.addMetadataOutput(listeners);
       listenerApplied = true;
     }
 

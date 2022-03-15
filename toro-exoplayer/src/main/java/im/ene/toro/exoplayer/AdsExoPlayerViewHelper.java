@@ -18,15 +18,17 @@ package im.ene.toro.exoplayer;
 
 import android.content.Context;
 import android.net.Uri;
-import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.source.ads.AdsLoader;
+import com.google.android.exoplayer2.ui.AdOverlayInfo;
+import com.google.android.exoplayer2.ui.AdViewProvider;
 import com.google.android.exoplayer2.ui.PlayerView;
 import im.ene.toro.ToroPlayer;
 import im.ene.toro.annotations.Beta;
 import im.ene.toro.helper.ToroPlayerHelper;
+import java.util.List;
 
 /**
  * A {@link ToroPlayerHelper} to integrate ExoPlayer IMA Extension. Work together with {@link
@@ -38,7 +40,7 @@ import im.ene.toro.helper.ToroPlayerHelper;
 @SuppressWarnings("unused") @Beta //
 public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
 
-  static class DefaultAdViewProvider implements AdsLoader.AdViewProvider {
+  static class DefaultAdViewProvider implements AdViewProvider {
 
     @NonNull final ViewGroup viewGroup;
 
@@ -50,8 +52,8 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       return this.viewGroup;
     }
 
-    @Override public View[] getAdOverlayViews() {
-      return new View[0];
+    @NonNull @Override public List<AdOverlayInfo> getAdOverlayInfos() {
+      return this.getAdOverlayInfos();
     }
   }
 
@@ -61,7 +63,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       Uri contentUri,         //
       String fileExt,         //
       AdsLoader adsLoader,    //
-      AdsLoader.AdViewProvider adViewProvider   //
+      AdViewProvider adViewProvider   //
   ) {
     return new AdsPlayable(creator, contentUri, fileExt, player, adsLoader, adViewProvider);
   }
@@ -72,7 +74,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       Uri contentUri,         //
       String fileExt,         //
       AdsLoader adsLoader,    //
-      AdsLoader.AdViewProvider adViewProvider   //
+      AdViewProvider adViewProvider   //
   ) {
     Context context = player.getPlayerView().getContext();
     return createPlayable(player, ToroExo.with(context).getCreator(config), contentUri, fileExt,
@@ -84,7 +86,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       Uri contentUri,         //
       String fileExt,         //
       AdsLoader adsLoader,    //
-      AdsLoader.AdViewProvider adViewProvider   //
+      AdViewProvider adViewProvider   //
   ) {
     Context context = player.getPlayerView().getContext();
     return createPlayable(player, ToroExo.with(context).getDefaultCreator(), contentUri, fileExt,
@@ -117,7 +119,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       @Nullable String fileExt,         //
       @NonNull AdsLoader adsLoader,     //
       @Nullable ViewGroup adContainer,   // will be ignored
-      @Nullable AdsLoader.AdViewProvider adViewProvider   //
+      @Nullable AdViewProvider adViewProvider   //
   ) {
     super(player, createPlayable(player, uri, fileExt, adsLoader, adViewProvider));
   }
@@ -148,7 +150,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       @Nullable String fileExt,         //
       @NonNull AdsLoader adsLoader,     //
       @Nullable ViewGroup adContainer,  // will be ignored
-      @Nullable AdsLoader.AdViewProvider adViewProvider,  //
+      @Nullable AdViewProvider adViewProvider,  //
       @NonNull ExoCreator creator       //
   ) {
     super(player, createPlayable(player, creator, uri, fileExt, adsLoader, adViewProvider));
@@ -179,7 +181,7 @@ public class AdsExoPlayerViewHelper extends ExoPlayerViewHelper {
       @Nullable String fileExt,         //
       @NonNull AdsLoader adsLoader,     //
       @Nullable ViewGroup adContainer,  // will be ignored
-      @Nullable AdsLoader.AdViewProvider adViewProvider,  //
+      @Nullable AdViewProvider adViewProvider,  //
       @NonNull Config config            //
   ) {
     super(player, createPlayable(player, config, uri, fileExt, adsLoader, adViewProvider));
